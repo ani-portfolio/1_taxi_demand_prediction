@@ -148,3 +148,26 @@ def create_ts_dataset(data: pd.DataFrame, n_features: int, step_size: int) -> pd
     df_target = df_target.iloc[index]
     
     return df_features.dropna().reset_index(drop=True), df_target['target_rides_next_hour'].dropna().reset_index(drop=True)
+
+def download_and_load_nyc_taxi_zone_data():
+    '''Downloads and loads the NYC taxi zone data'''
+
+    # check if file exists
+    local_file = RAW_DATA_DIR / f'nyc_zone_data.csv'
+    if not local_file.exists():
+        URL = f'https://d37ci6vzurychx.cloudfront.net/misc/taxi+_zone_lookup.csv'
+        response = requests.get(URL)
+
+        if response.status_code == 200:
+            path = RAW_DATA_DIR / f'nyc_zone_data.csv'
+            open(path, "wb").write(response.content)
+        else:
+            raise Exception(f'{URL} is not available')
+    else:
+        path = RAW_DATA_DIR / f'nyc_zone_data.csv'
+    
+    # load data
+    nyc_zone_data = pd.read_csv(path)
+    nyc_zone_data.drop_duplicates('LocationID', inplace=True)
+
+    return nyc_zone_data

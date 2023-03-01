@@ -155,7 +155,7 @@ def download_and_load_nyc_taxi_zone_data():
     # check if file exists
     local_file = RAW_DATA_DIR / f'nyc_zone_data.csv'
     if not local_file.exists():
-        URL = f'https://d37ci6vzurychx.cloudfront.net/misc/taxi+_zone_lookup.csv'
+        URL = f'https://data.cityofnewyork.us/api/views/755u-8jsi/rows.csv?accessType=DOWNLOAD'
         response = requests.get(URL)
 
         if response.status_code == 200:

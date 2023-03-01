@@ -10,6 +10,5 @@
 # cache
 src/__pycache__
 
-# poetry
-poetry.lock
-pyproject.toml
+# venv
+.venv

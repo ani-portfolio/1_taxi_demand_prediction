@@ -1,0 +1,14 @@
+# data files
+/data
+
+# API Key
+.env
+
+# DS_Store
+.DS_Store
+
+# cache
+src/__pycache__
+
+# venv
+.venv

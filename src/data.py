@@ -47,7 +47,7 @@ def load_raw_data(year:int, months: Optional[List[int]] = None) -> pd.DataFrame:
         months = list(range(1, 13))
 
     rides = pd.DataFrame()
-    for month in months:
+    for month in [months]:
         # check if file exists
         local_file = RAW_DATA_DIR / f'rides_{year}-{month:02d}.parquet'
         if not local_file.exists():
@@ -55,7 +55,7 @@ def load_raw_data(year:int, months: Optional[List[int]] = None) -> pd.DataFrame:
                 download_raw_data_one_file(year, month)
                 print(f'Downloaded file for {year}-{month:02d}')
             except:
-                print(f'Could not download file for {year}-{month:02d}')
+                print(f'File for {year}-{month:02d} not available ')
                 continue
         else:
             print(f'File for {year}-{month:02d} already exists')

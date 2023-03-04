@@ -12,3 +12,6 @@ src/__pycache__
 
 # venv
 .venv
+
+# models
+models/

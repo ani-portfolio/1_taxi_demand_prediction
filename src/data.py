@@ -1,3 +1,7 @@
+# set current working directory to root
+import os
+os.chdir('..')
+
 from pathlib import Path
 from typing import List, Optional
 from tqdm import tqdm
@@ -45,9 +49,11 @@ def load_raw_data(year:int, months: Optional[List[int]] = None) -> pd.DataFrame:
     if months is None:
         # download all months
         months = list(range(1, 13))
+    else:
+        months = [months]
 
     rides = pd.DataFrame()
-    for month in [months]:
+    for month in months:
         # check if file exists
         local_file = RAW_DATA_DIR / f'rides_{year}-{month:02d}.parquet'
         if not local_file.exists():

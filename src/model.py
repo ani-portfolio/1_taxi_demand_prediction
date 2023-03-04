@@ -1,3 +1,7 @@
+# set current working directory to root
+import os
+os.chdir('..')
+
 import pandas as pd
 import lightgbm as lgb
 

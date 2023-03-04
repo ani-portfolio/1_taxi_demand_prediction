@@ -1,3 +1,7 @@
+# set current working directory to root
+import os
+os.chdir('..')
+
 from datetime import datetime
 from typing import Tuple
 

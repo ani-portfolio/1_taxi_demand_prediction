@@ -15,9 +15,9 @@ import geopandas as gpd
 import pydeck as pdk
 import streamlit as st
 
-from src.inference import get_model_predictions, load_batch_of_features_from_store, load_model_from_registry
-from src.paths import DATA_DIR
-from src.plot import plot_one_sample
+from inference import get_model_predictions, load_batch_of_features_from_store, load_model_from_registry
+from paths import DATA_DIR
+from plot import plot_one_sample
 
 st.set_page_config(layout="wide")
 

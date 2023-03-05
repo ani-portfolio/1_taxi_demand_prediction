@@ -1,7 +1,3 @@
-# set current working directory to root
-import os
-os.chdir('..')
-
 from typing import Optional
 
 import pandas as pd

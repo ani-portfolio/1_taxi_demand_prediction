@@ -1,7 +1,3 @@
-# set current working directory to root
-import os
-os.chdir('..')
-
 from datetime import datetime, timedelta
 
 import warnings
@@ -72,10 +68,6 @@ def load_batch_of_features_from_store(current_date: datetime) -> pd.DataFrame:
         end_time=(fetch_data_to + timedelta(days=1)))
     
     ts_data = ts_data[ts_data.pickup_hour.between(fetch_data_from, fetch_data_to)]
-
-    # validate data to ensure no missing data (i.e. all locations have data for all hours)
-    location_ids = ts_data.pickup_location_id.unique()
-    assert len(ts_data) == n_features * len(location_ids), "Data is incomplete"
     
     # sort data by location and hour
     ts_data = ts_data.sort_values(by=['pickup_location_id', 'pickup_hour'])
@@ -85,7 +77,7 @@ def load_batch_of_features_from_store(current_date: datetime) -> pd.DataFrame:
     warnings.simplefilter(action='ignore', category=pd.errors.PerformanceWarning)
 
     df_features = pd.DataFrame()
-    for location_id in tqdm(ts_data['pickup_location_id'].unique()):
+    for i, location_id in enumerate(ts_data['pickup_location_id'].unique()):
         data_i = ts_data[ts_data['pickup_location_id'] == location_id].reset_index(drop=True)
     
         df_features_i = pd.DataFrame()

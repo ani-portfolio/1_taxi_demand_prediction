@@ -45,6 +45,8 @@ def load_raw_data(year:int, months: Optional[List[int]] = None) -> pd.DataFrame:
     if months is None:
         # download all months
         months = list(range(1, 13))
+    else:
+        months = [months]
 
     rides = pd.DataFrame()
     for month in months:
@@ -55,7 +57,7 @@ def load_raw_data(year:int, months: Optional[List[int]] = None) -> pd.DataFrame:
                 download_raw_data_one_file(year, month)
                 print(f'Downloaded file for {year}-{month:02d}')
             except:
-                print(f'Could not download file for {year}-{month:02d}')
+                print(f'File for {year}-{month:02d} not available ')
                 continue
         else:
             print(f'File for {year}-{month:02d} already exists')

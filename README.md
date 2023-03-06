@@ -171,7 +171,7 @@ The formula for MAE is;
 
 $$ \frac{1}{n}\sum_{i=1}^{n}|x_i-y_i| $$
 
-Where n is the number of samples, $x$ is the prediction and $y$ is the actual value. 
+Where $n$ is the number of samples, $x$ is the prediction and $y$ is the actual value. 
 
 The MAE can be used to evaluate the performance of the baseline models, and how the LightGBM model performs against simple baseline models. 
 

@@ -169,10 +169,10 @@ MAE stands for Mean Absolute Error. It is a metric used to evaluate the performa
 
 The formula for MAE is;
 
-$$
+$
 \frac{1}{n}\sum_{i=1}^{n}|x_i-y_i|
 
-$$
+$
 
 Where n is the number of samples, $x$ is the prediction and $y$ is the actual value. 
 

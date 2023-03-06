@@ -5,6 +5,7 @@ from IPython.display import display
 import warnings
 import requests
 import pandas as pd
+import numpy as np
 from src.paths import RAW_DATA_DIR, TRANSFORMED_DATA_DIR, PARENT_DIR
 
 def download_raw_data_one_file(year: int, month: int) -> Path:
@@ -118,38 +119,78 @@ def transform_raw_data_into_ts_data(rides: pd.DataFrame) -> pd.DataFrame:
     return agg_rides_all_dates
 
 
-def create_ts_dataset(data: pd.DataFrame, n_features: int, step_size: int) -> pd.DataFrame:
+def get_indices(ts_data: pd.DataFrame, n_features: int, step_size: int) -> list:
     """
-    Create a dataset with n_features and a target column based on step_size.
+    Return a list of tuples with indices to slice the dataframe.
     """
 
-    warnings.simplefilter(action='ignore', category=pd.errors.PerformanceWarning)
+    # get indices for each lag feature
+    subseq_first_idx = 0
+    subseq_mid_idx = n_features
+    subseq_last_idx = n_features + 1
 
-    df_features = pd.DataFrame()
-    df_target = pd.DataFrame()
-    for location_id in tqdm(data['pickup_location_id'].unique()):
-        data_i = data[data['pickup_location_id'] == location_id].reset_index(drop=True)
+    indices = []
+    stop_position = len(ts_data) - 1
+    while subseq_last_idx <= stop_position:
+        indices.append((subseq_first_idx, subseq_mid_idx, subseq_last_idx))
+        subseq_first_idx += step_size
+        subseq_mid_idx += step_size
+        subseq_last_idx += step_size
     
-        df_features_i = pd.DataFrame()
-        df_target_i = pd.DataFrame()
-        # take the last n_features rows and add them as features
-        for i in range(n_features):
-            df_features_i['pickup_hour'] = data_i['pickup_hour'].shift(-n_features)
-            df_features_i['pickup_location_id'] = data_i['pickup_location_id']
-            df_features_i[f'rides_previous_{n_features-i}_hour'] = data_i['rides'].shift(-i)
+    return indices
 
-            # take the next row after the last n_features rows and add it as target
-            df_target_i['target_rides_next_hour'] = data_i['rides'].shift(-n_features)
-    
-        df_features = pd.concat([df_features, df_features_i])
-        df_target = pd.concat([df_target, df_target_i])
 
-    # select rows based on step_size
-    index = list(range(0, len(df_features), step_size))
-    df_features = df_features.iloc[index]
-    df_target = df_target.iloc[index]
+def create_ts_dataset(ts_data: pd.DataFrame, n_features: int, step_size: int) -> List[int]:
+    """
+    Get cutoff indices to split dataframe rows into features and target.
+    """
     
-    return df_features.dropna().reset_index(drop=True), df_target['target_rides_next_hour'].dropna().reset_index(drop=True)
+    # ensure each location has the same number of rows
+    assert len(ts_data.groupby(['pickup_location_id']).count().value_counts()) == 1, 'Each location ID does not have the same number of rows.'
+
+    # ensure each location and pickup_date has same number of rows (24 rows for each ID and Date)
+    assert len(ts_data.groupby(['pickup_location_id', ts_data['pickup_hour'].dt.date]).count().reset_index(drop=True).value_counts()) == 1, 'Each location ID & Date does not have the same number of rows.'
+    
+
+    # get features and target using indices
+    location_ids = ts_data['pickup_location_id'].unique()
+    features = pd.DataFrame()
+    targets = pd.DataFrame()
+    
+    for location_id in tqdm(location_ids):
+        ts_data_i = ts_data[ts_data['pickup_location_id'] == location_id].sort_values(by=['pickup_hour'])
+
+        # get indices for each lag feature
+        indices = get_indices(ts_data_i, n_features, step_size)
+        
+        # slice and transpose data into numpy arrays for features and targets
+        n_samples = len(indices)
+        x = np.ndarray(shape=(n_samples, n_features), dtype=np.float32)
+        y = np.ndarray(shape=(n_samples), dtype=np.float32)
+
+        pickup_hours = []
+        for i, idx in enumerate(indices):
+            x[i, :] = ts_data_i.iloc[idx[0]:idx[1]]['rides'].values
+            y[i] = ts_data_i.iloc[idx[1]:idx[2]]['rides'].values
+            pickup_hours.append(ts_data_i.iloc[idx[1]]['pickup_hour'])
+
+        # convert x numpy arrays to pandas dataframe
+        features_one_location = pd.DataFrame(x, columns=[f'rides_previous_{i+1}_hour' for i in reversed(range(n_features))])
+        features_one_location['pickup_hour'] = pickup_hours
+        features_one_location['pickup_location_id'] = location_id
+
+        # convert y numpy arrays to pandas dataframe
+        targets_one_location = pd.DataFrame(y, columns=[f'target_rides_next_hour'])
+
+        # concatenate results
+        features = pd.concat([features, features_one_location])
+        targets = pd.concat([targets, targets_one_location])
+
+    features.reset_index(inplace=True, drop=True)
+    targets.reset_index(inplace=True, drop=True)
+
+    return features, targets['target_rides_next_hour']
+
 
 def download_and_load_nyc_taxi_zone_data():
     '''Downloads and loads the NYC taxi zone data'''

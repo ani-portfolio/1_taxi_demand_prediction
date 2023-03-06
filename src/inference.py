@@ -47,49 +47,49 @@ def get_model_predictions(model, features: pd.DataFrame) -> pd.DataFrame:
 
 
 def load_batch_of_features_from_store(current_date: datetime) -> pd.DataFrame:
-    '''
-    Load a batch of features from the feature store
-    '''
-    
+
     feature_store = get_feature_store()
+
     n_features = config.N_FEATURES
 
-    # get time series data from feature store
+    # read time-series data from the feature store
     fetch_data_to = current_date - timedelta(hours=1)
     fetch_data_from = current_date - timedelta(days=28)
     print(f'Fetching data from {fetch_data_from} to {fetch_data_to}')
-
     feature_view = feature_store.get_feature_view(
         name=config.FEATURE_VIEW_NAME,
-        version=config.FEATURE_VIEW_VERSION)
-    
+        version=config.FEATURE_VIEW_VERSION
+    )
     ts_data = feature_view.get_batch_data(
         start_time=(fetch_data_from - timedelta(days=1)),
-        end_time=(fetch_data_to + timedelta(days=1)))
-    
+        end_time=(fetch_data_to + timedelta(days=1))
+    )
     ts_data = ts_data[ts_data.pickup_hour.between(fetch_data_from, fetch_data_to)]
+
+    # validate we are not missing data in the feature store
+    location_ids = ts_data['pickup_location_id'].unique()
+    assert len(ts_data) == n_features*len(location_ids), \
+        "Time-series data is not complete. Make sure your feature pipeline is up and runnning."
     
-    # sort data by location and hour
-    ts_data = ts_data.sort_values(by=['pickup_location_id', 'pickup_hour'])
+    # sort data by location and time
+    ts_data.sort_values(by=['pickup_location_id', 'pickup_hour'], inplace=True)
     print(f'{ts_data=}')
 
-    # transpose ts data as a feature vector for each location
-    warnings.simplefilter(action='ignore', category=pd.errors.PerformanceWarning)
+    # transpose time-series data as a feature vector, for each `location_id`
+    x = np.ndarray(shape=(len(location_ids), n_features), dtype=np.float32)
+    for i, location_id in enumerate(location_ids):
+        ts_data_i = ts_data.loc[ts_data.pickup_location_id == location_id, :]
+        ts_data_i = ts_data_i.sort_values(by=['pickup_hour'])
+        x[i, :] = ts_data_i['rides'].values
 
-    df_features = pd.DataFrame()
-    for i, location_id in enumerate(ts_data['pickup_location_id'].unique()):
-        data_i = ts_data[ts_data['pickup_location_id'] == location_id].reset_index(drop=True)
-    
-        df_features_i = pd.DataFrame()
-        # take the last n_features rows and add them as features
-        for i in range(n_features):
-            df_features_i['pickup_hour'] = current_date
-            df_features_i['pickup_location_id'] = data_i['pickup_location_id']
-            df_features_i[f'rides_previous_{n_features-i}_hour'] = data_i['rides'].shift(-i)
-    
-        df_features = pd.concat([df_features, df_features_i])
+    features = pd.DataFrame(
+        x,
+        columns=[f'rides_previous_{i+1}_hour' for i in reversed(range(n_features))]
+    )
+    features['pickup_hour'] = current_date
+    features['pickup_location_id'] = location_ids
 
-    return df_features
+    return features
 
 
 def load_model_from_registry():

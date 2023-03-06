@@ -46,9 +46,7 @@ def get_model_predictions(model, features: pd.DataFrame) -> pd.DataFrame:
     return results
 
 
-def load_batch_of_features_from_store(
-    current_date: datetime,    
-) -> pd.DataFrame:
+def load_batch_of_features_from_store(current_date: datetime) -> pd.DataFrame:
 
     feature_store = get_feature_store()
 
@@ -70,6 +68,8 @@ def load_batch_of_features_from_store(
 
     # validate we are not missing data in the feature store
     location_ids = ts_data['pickup_location_id'].unique()
+    assert len(ts_data) == n_features*len(location_ids), \
+        "Time-series data is not complete. Make sure your feature pipeline is up and runnning."
     
     # sort data by location and time
     ts_data.sort_values(by=['pickup_location_id', 'pickup_hour'], inplace=True)

@@ -52,25 +52,25 @@ def load_shape_data():
     
     return gpd.read_file(DATA_DIR / 'taxi_zones' / 'taxi_zones.shp').to_crs('EPSG:4326')
 
-with st.spinner(text='Downloading Shape File to Plot Taxi Zones (ETA 1 min)'):
+with st.spinner(text='Downloading Shape File to Plot Taxi Zones (ETA 30 secs)'):
     geo_df = load_shape_data()
-    st.sidebar.write('Shape File Downloaded')
+    st.sidebar.write('(Step 1/5) Shape File Downloaded')
     progress_bar.progress(1/N_STEPS)
 
-with st.spinner(text='Fetching Inference Data (ETA 2 mins)'):
+with st.spinner(text='Fetching Inference Data (ETA 1 mins)'):
     features = load_batch_of_features_from_store(current_date)
-    st.sidebar.write('Inference Data Fetched')
+    st.sidebar.write('(Step 2/5) Inference Data Fetched')
     progress_bar.progress(2/N_STEPS)
     print(f'{features}')
 
 with st.spinner(text='Loading ML Model from Registry (ETA 1 min)'):
     model = load_model_from_registry()
-    st.sidebar.write('Model Loaded from Registry')
+    st.sidebar.write('(Step 3/5) Model Loaded from Registry')
     progress_bar.progress(3/N_STEPS)
 
 with st.spinner(text='Computing Predictions (ETA 15 secs))'):
     results = get_model_predictions(model, features)
-    st.sidebar.write('Predictions Computed')
+    st.sidebar.write('(Step 4/5) Predictions Computed')
     progress_bar.progress(4/N_STEPS)
 
 # with st.spinner(text='Preparing Data for Plotting (ETA 15 secs)'):
@@ -127,10 +127,10 @@ with st.spinner(text='Computing Predictions (ETA 15 secs))'):
 #     progress_bar.progress(6/N_STEPS)
 
 
-with st.spinner(text="Plotting Time-Series for Busiest Zone"):
+with st.spinner(text="Plotting Time-Series for 10 Busiest Zones"):
    
     row_indices = np.argsort(results['predicted_demand'].values)[::-1]
-    n_to_plot = 1
+    n_to_plot = 10
 
     # plot each time-series with the prediction
     for row_id in row_indices[:n_to_plot]:
@@ -141,5 +141,5 @@ with st.spinner(text="Plotting Time-Series for Busiest Zone"):
             predictions=pd.Series(results['predicted_demand'])
         )
         st.plotly_chart(fig, theme="streamlit", use_container_width=True, width=1000)
-    st.sidebar.write('Time-Series Plotted')
-    progress_bar.progress(7/N_STEPS)
+    st.sidebar.write('(Step 5/5) Time-Series Plotted for 10 Busiest Zones')
+    progress_bar.progress(5/N_STEPS)

@@ -29,7 +29,7 @@ current_date_title = current_date_title.strftime('%B %d %Y, %I:%M %p')
 
 # title
 st.title(f'NYC Taxi Demand Prediction - Top 10 Busiest Zones')
-st.header(f'{current_date_title} EST')
+st.header(f'{current_date_title} EST\nDisclaimer: This app was created following a tutorial made by [Pau Labarto Bajo](https://datamachines.xyz/)')
 
 progress_bar = st.sidebar.header('Work in Progress')
 progress_bar = st.sidebar.progress(0)

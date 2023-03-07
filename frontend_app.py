@@ -28,7 +28,7 @@ current_date_title = datetime.strptime(current_date_title, '%B %d %Y, %H:%M')
 current_date_title = current_date_title.strftime('%B %d %Y, %I:%M %p')
 
 # title
-st.title(f'NYC Taxi Demand Prediction')
+st.title(f'NYC Taxi Demand Prediction - Top 10 Busiest Zones')
 st.header(f'{current_date_title} EST')
 
 progress_bar = st.sidebar.header('Work in Progress')

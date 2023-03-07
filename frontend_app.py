@@ -28,7 +28,7 @@ current_date_title = datetime.strptime(current_date_title, '%B %d %Y, %H:%M')
 current_date_title = current_date_title.strftime('%B %d %Y, %I:%M %p')
 
 # title
-st.title(f'NYC Taxi Demand Prediction')
+st.title(f'NYC Taxi Demand Prediction - Top 10 Busiest Zones')
 st.header(f'{current_date_title} EST')
 
 progress_bar = st.sidebar.header('Work in Progress')
@@ -52,23 +52,23 @@ def load_shape_data():
     
     return gpd.read_file(DATA_DIR / 'taxi_zones' / 'taxi_zones.shp').to_crs('EPSG:4326')
 
-with st.spinner(text='Downloading Shape File to Plot Taxi Zones (ETA 30 secs)'):
+with st.spinner(text='Downloading Shape File to Plot Taxi Zones (ETA 10 secs)'):
     geo_df = load_shape_data()
     st.sidebar.write('(Step 1/5) Shape File Downloaded')
     progress_bar.progress(1/N_STEPS)
 
-with st.spinner(text='Fetching Inference Data (ETA 1 mins)'):
+with st.spinner(text='Fetching Inference Data (ETA 30 secs)'):
     features = load_batch_of_features_from_store(current_date)
     st.sidebar.write('(Step 2/5) Inference Data Fetched')
     progress_bar.progress(2/N_STEPS)
     print(f'{features}')
 
-with st.spinner(text='Loading ML Model from Registry (ETA 1 min)'):
+with st.spinner(text='Loading ML Model from Registry (ETA 15 secs)'):
     model = load_model_from_registry()
     st.sidebar.write('(Step 3/5) Model Loaded from Registry')
     progress_bar.progress(3/N_STEPS)
 
-with st.spinner(text='Computing Predictions (ETA 15 secs))'):
+with st.spinner(text='Computing Predictions (ETA 5 secs))'):
     results = get_model_predictions(model, features)
     st.sidebar.write('(Step 4/5) Predictions Computed')
     progress_bar.progress(4/N_STEPS)

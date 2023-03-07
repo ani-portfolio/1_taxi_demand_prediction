@@ -1,6 +1,6 @@
 # <div align="center"> NYC Taxi Demand Prediction Project
 ### Tools & Techniques used:
-* [Streamlit App]()
+* [Streamlit App](https://ani-portfolio-1-taxi-demand-forecasting-frontend-app-ebt554.streamlit.app/)
 * LightGBM Time-Series Prediction
 * Optuna Hyper-parameter Tuning
 * Hopsworks Feature Store
